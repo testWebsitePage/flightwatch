@@ -1,0 +1,45 @@
+{
+  "_comment": "SFO -> 台北停留 -> 华中停留 -> SFO。日期完全灵活，扫描未来 12 个月。",
+  "trip": {
+    "origin": "SFO",
+    "stop1": "TPE",
+    "stop2": [
+      "WUH",
+      "CSX"
+    ],
+    "stop1_nights": [
+      3,
+      4
+    ],
+    "stop2_nights": [
+      9,
+      10,
+      11
+    ],
+    "adults": 1,
+    "travel_class": 1,
+    "currency": "USD"
+  },
+  "window": {
+    "days_from_now_min": 21,
+    "days_from_now_max": 330
+  },
+  "budget": {
+    "serpapi_monthly": 250,
+    "serpapi_daily": 8,
+    "reserve_for_incumbent": 2,
+    "safety_margin": 5
+  },
+  "alerts": {
+    "own_history_percentile": 15,
+    "absolute_ceiling_usd": null,
+    "min_observations_before_percentile": 12,
+    "cooldown_days": 5,
+    "redrop_pct": 4.0
+  },
+  "email": {
+    "to": "",
+    "subject_prefix": "[机票]",
+    "_note": "收件地址走环境变量 ALERT_TO / GitHub Secret，不写在这里"
+  }
+}

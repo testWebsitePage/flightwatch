@@ -1,0 +1,80 @@
+name: flightwatch
+
+on:
+  schedule:
+    - cron: "0 15 * * *"      # 每天 08:00 太平洋时间（15:00 UTC）
+  workflow_dispatch:
+    inputs:
+      force_email:
+        description: "即使没有触发也发一封摘要"
+        type: boolean
+        default: false
+
+concurrency:
+  group: flightwatch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # 需要把 flights.db 和看板写回仓库
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run watcher
+        env:
+          TP_TOKEN:     ${{ secrets.TP_TOKEN }}
+          SERPAPI_KEY:  ${{ secrets.SERPAPI_KEY }}
+          SMTP_USER:    ${{ secrets.SMTP_USER }}
+          SMTP_PASS:    ${{ secrets.SMTP_PASS }}
+          ALERT_TO:     ${{ secrets.ALERT_TO }}
+        run: |
+          python watch.py ${{ inputs.force_email && '--force-email' || '' }}
+
+      - name: Persist history
+        run: |
+          git config user.name  "flightwatch"
+          git config user.email "actions@github.com"
+          git add flights.db dashboard.html
+          git diff --cached --quiet || git commit -m "watch $(date -u +%F)"
+          git push
+
+      # 看板永远可下载：Actions 页面 → 本次运行 → Artifacts
+      - name: Upload dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard
+          path: dashboard.html
+          retention-days: 30
+
+      # 想要一个固定网址的话：仓库 Settings → Pages 打开，
+      # 再到 Settings → Variables → Actions 加一个 ENABLE_PAGES = true
+      - name: Prepare Pages
+        if: vars.ENABLE_PAGES == 'true'
+        run: |
+          mkdir -p _site
+          cp dashboard.html _site/index.html
+      - name: Upload Pages artifact
+        if: vars.ENABLE_PAGES == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy-pages:
+    needs: watch
+    if: vars.ENABLE_PAGES == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
