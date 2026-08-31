@@ -2,8 +2,8 @@ name: flightwatch
 
 on:
   schedule:
-    - cron: "0 22 * * *"      # 每天 15:00 太平洋夏令时（22:00 UTC）
-                              # 冬令时会变成 14:00 PT —— GitHub cron 只认 UTC，不跟随夏令时
+    - cron: "0 0 * * *"       # 每天 17:00 美西夏令时（= 次日 00:00 UTC）
+                              # GitHub cron 只认 UTC、不跟夏令时，冬天会变成 16:00 PT
   workflow_dispatch:
     inputs:
       force_email:
