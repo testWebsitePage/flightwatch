@@ -28,6 +28,10 @@ CREATE TABLE IF NOT EXISTS api_usage (          -- SerpApi 配额账本
   PRIMARY KEY (day)
 );
 
+CREATE TABLE IF NOT EXISTS meta (
+  k TEXT PRIMARY KEY, v TEXT
+);
+
 CREATE TABLE IF NOT EXISTS alert_sent (
   combo_id TEXT, sent_at TEXT, price REAL,
   PRIMARY KEY (combo_id, sent_at)
@@ -135,6 +139,29 @@ def bump_usage(c, k=1):
     c.execute("INSERT INTO api_usage(day, month, n) VALUES (?,?,?) "
               "ON CONFLICT(day) DO UPDATE SET n = n + ?", (d, m, k, k))
     c.commit()
+
+
+# ---------- 元信息 ----------
+
+def get_meta(c, k):
+    r = c.execute("SELECT v FROM meta WHERE k=?", (k,)).fetchone()
+    return r["v"] if r else None
+
+
+def set_meta(c, k, v):
+    c.execute("INSERT OR REPLACE INTO meta VALUES (?,?)", (k, str(v)))
+    c.commit()
+
+
+def days_since_email(c):
+    v = get_meta(c, "last_email")
+    if not v:
+        return 999
+    try:
+        d = datetime.datetime.fromisoformat(v)
+    except ValueError:
+        return 999
+    return (datetime.datetime.now(datetime.timezone.utc) - d).total_seconds() / 86400.0
 
 
 # ---------- 告警去重 ----------

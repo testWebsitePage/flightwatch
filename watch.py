@@ -272,6 +272,8 @@ def main():
     ap.add_argument("--no-broad", action="store_true", help="跳过 Travelpayouts 广度扫描")
     ap.add_argument("--no-quote", action="store_true", help="跳过 SerpApi，只跑广度层")
     ap.add_argument("--force-email", action="store_true", help="无论有没有告警都发一封")
+    ap.add_argument("--digest-days", type=int, default=0,
+                    help="距上次发信超过 N 天就发一封摘要（证明任务还活着）")
     ap.add_argument("--slots", type=int, default=None, help="覆盖今日搜索次数")
     args = ap.parse_args()
 
@@ -319,11 +321,17 @@ def main():
     open(out, "w", encoding="utf-8").write(html)
     print("[5] 看板已写入 %s" % out)
 
-    if hits or args.force_email:
+    quiet = store.days_since_email(c)
+    digest = args.digest_days and quiet >= args.digest_days
+    if hits or args.force_email or digest:
+        why = "告警触发" if hits else ("手动强制" if args.force_email
+                                       else "已静默 %.1f 天，发摘要报平安" % quiet)
         ok = notify.send(CFG, hits, rows, hist)
-        print("[6] 邮件：%s" % ("已发送" if ok else "未发送（缺少 SMTP 配置）"))
+        if ok:
+            store.set_meta(c, "last_email", store.now())
+        print("[6] 邮件：%s（%s）" % ("已发送" if ok else "未发送（缺少凭据）", why))
     else:
-        print("[6] 邮件：无触发，不发送")
+        print("[6] 邮件：无触发，距上次发信 %.1f 天，不发送" % quiet)
 
 
 if __name__ == "__main__":

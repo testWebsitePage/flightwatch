@@ -2,7 +2,8 @@ name: flightwatch
 
 on:
   schedule:
-    - cron: "0 0 * * *"       # 每天 17:00 美西夏令时（= 次日 00:00 UTC）
+    - cron: "23 0 * * *"      # 每天 17:23 美西夏令时（= 次日 00:23 UTC）
+                              # 刻意避开整点 —— GitHub 官方说整点是调度最拥堵的时刻，会延迟甚至丢弃
                               # GitHub cron 只认 UTC、不跟夏令时，冬天会变成 16:00 PT
   workflow_dispatch:
     inputs:
@@ -35,7 +36,7 @@ jobs:
           SMTP_PASS:    ${{ secrets.SMTP_PASS }}
           ALERT_TO:     ${{ secrets.ALERT_TO }}
         run: |
-          python watch.py ${{ inputs.force_email && '--force-email' || '' }}
+          python watch.py --digest-days 7 ${{ inputs.force_email && '--force-email' || '' }}
 
       - name: Persist history
         run: |
