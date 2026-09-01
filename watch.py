@@ -329,6 +329,8 @@ def main():
         ok = notify.send(CFG, hits, rows, hist)
         if ok:
             store.set_meta(c, "last_email", store.now())
+            for h in hits:                      # 记账，冷却期才会真正生效
+                store.mark_alert(c, h["row"]["combo_id"], h["row"]["price"])
         print("[6] 邮件：%s（%s）" % ("已发送" if ok else "未发送（缺少凭据）", why))
     else:
         print("[6] 邮件：无触发，距上次发信 %.1f 天，不发送" % quiet)

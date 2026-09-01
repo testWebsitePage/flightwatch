@@ -36,7 +36,7 @@ jobs:
           SMTP_PASS:    ${{ secrets.SMTP_PASS }}
           ALERT_TO:     ${{ secrets.ALERT_TO }}
         run: |
-          python watch.py --digest-days 7 ${{ inputs.force_email && '--force-email' || '' }}
+          python watch.py --digest-days 1 ${{ inputs.force_email && '--force-email' || '' }}
 
       - name: Persist history
         run: |

@@ -132,6 +132,10 @@ def send(cfg, hits, rows, hist):
     if hits:
         best = min(h["row"]["price"] for h in hits)
         subj = "%s $%.0f 起 · %d 个行程达到买入条件" % (cfg["email"]["subject_prefix"], best, len(hits))
+    elif rows:
+        b = rows[0]
+        subj = "%s 每日摘要 · 当前最低 $%.0f（%s 出发）" % (
+            cfg["email"]["subject_prefix"], b["price"], _cn(b["dep1"]))
     else:
         subj = "%s 每日摘要" % cfg["email"]["subject_prefix"]
 
