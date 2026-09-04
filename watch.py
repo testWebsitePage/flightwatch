@@ -325,7 +325,7 @@ def main():
     digest = args.digest_days and quiet >= args.digest_days
     if hits or args.force_email or digest:
         why = "告警触发" if hits else ("手动强制" if args.force_email
-                                       else "已静默 %.1f 天，发摘要报平安" % quiet)
+                                       else "距上次发信 %d 个日历天，发摘要报平安" % quiet)
         ok = notify.send(CFG, hits, rows, hist)
         if ok:
             store.set_meta(c, "last_email", store.now())
@@ -333,7 +333,7 @@ def main():
                 store.mark_alert(c, h["row"]["combo_id"], h["row"]["price"])
         print("[6] 邮件：%s（%s）" % ("已发送" if ok else "未发送（缺少凭据）", why))
     else:
-        print("[6] 邮件：无触发，距上次发信 %.1f 天，不发送" % quiet)
+        print("[6] 邮件：无触发，今天已发过（距上次 %d 个日历天），不重复发" % quiet)
 
 
 if __name__ == "__main__":

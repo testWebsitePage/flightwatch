@@ -3,6 +3,14 @@
 # 直接 push 必然撞车；这里统一以云端的数据库为准，只推代码改动。
 set -e
 cd "$(dirname "$0")"
+
+# 先提交工作区改动（之前漏了这步，导致改完没推上去还以为推了）
+MSG="${1:-update $(date -u +%F)}"
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  git add -A
+  git commit -q -m "$MSG"
+  echo "已提交: $MSG"
+fi
 for i in 1 2 3 4 5; do
   git fetch -q origin main
   if git rebase -q origin/main 2>/dev/null; then :; else

@@ -154,6 +154,8 @@ def set_meta(c, k, v):
 
 
 def days_since_email(c):
+    """按【日历天】算，不是按 24 小时间隔。
+    调度时间每天会有几分钟抖动，用时长判断会永远差一点点、导致每日摘要卡死不发。"""
     v = get_meta(c, "last_email")
     if not v:
         return 999
@@ -161,7 +163,9 @@ def days_since_email(c):
         d = datetime.datetime.fromisoformat(v)
     except ValueError:
         return 999
-    return (datetime.datetime.now(datetime.timezone.utc) - d).total_seconds() / 86400.0
+    last_day = d.astimezone(datetime.timezone.utc).date()
+    today_utc = datetime.datetime.now(datetime.timezone.utc).date()
+    return (today_utc - last_day).days
 
 
 # ---------- 告警去重 ----------
